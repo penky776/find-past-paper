@@ -73,8 +73,8 @@ async fn match_input(Form(input): Form<Input>) -> impl IntoResponse {
 
     match text {
         Ok(t) => {
-            let string_text = String::from_utf8(t.stdout).unwrap();
-            Ok(string_text.into_response().map(boxed))
+            let result = String::from_utf8(t.stdout).unwrap();
+            Ok(result.into_response().map(boxed))
         }
         Err(_) => Err(Error::CouldNotReadFile
             .to_string()
