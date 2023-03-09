@@ -6,31 +6,42 @@ use axum::{
     Router,
 };
 use serde::Deserialize;
-use std::process::Command;
-use std::{fmt, net::SocketAddr};
+use std::{fmt, net::SocketAddr, process::Command};
+use tower_http::services::ServeDir;
 
 #[derive(Debug)]
 enum Error {
+    ServerFailed,
     CouldNotReadFile,
+    InputFieldIsEmpty,
+    UnsuitableInputLength,
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            Error::ServerFailed => write!(f, "server failed to start"),
             Error::CouldNotReadFile => write!(f, "Could not read file"),
+            Error::InputFieldIsEmpty => write!(f, "Input field is not allowed to be empty"),
+            Error::UnsuitableInputLength => write!(f, "Input must be over 3 characters"),
         }
     }
 }
 
 #[tokio::main]
-async fn main() {
-    let app = Router::new().route("/", get(root).post(match_input));
+async fn main() -> Result<(), Error> {
+    let app = Router::new()
+        .route("/", get(root).post(match_input))
+        .nest_service("/js", ServeDir::new("assets/js"));
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
 
-    axum::Server::bind(&addr)
+    match axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
-        .unwrap();
+    {
+        Ok(i) => Ok(i),
+        Err(_) => Err(Error::ServerFailed),
+    }
 }
 
 async fn root() -> Html<&'static str> {
@@ -44,6 +55,17 @@ struct Input {
 }
 
 async fn match_input(Form(input): Form<Input>) -> impl IntoResponse {
+    if input.user_input.is_empty() {
+        return Err(Error::InputFieldIsEmpty
+            .to_string()
+            .into_response()
+            .map(boxed));
+    } else if input.user_input.len() < 3 {
+        return Err(Error::UnsuitableInputLength
+            .to_string()
+            .into_response()
+            .map(boxed));
+    };
     let input = input.user_input;
     let text = Command::new("pdfgrep")
         .args([&input, "past papers/", "-n", "-r", "-H"])
