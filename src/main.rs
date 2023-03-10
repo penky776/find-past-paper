@@ -68,7 +68,7 @@ async fn match_input(Form(input): Form<Input>) -> impl IntoResponse {
     };
     let input = input.user_input;
     let text = Command::new("pdfgrep")
-        .args([&input, "past papers/", "-n", "-r", "-H"])
+        .args([&input, "past papers", "-n", "-r", "-H"])
         .output();
 
     match text {
