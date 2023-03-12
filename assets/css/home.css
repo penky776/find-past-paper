@@ -1,4 +1,16 @@
+ body {
+     background-color: rgb(194, 206, 208);
+ }
+
+ #output {
+     white-space: pre-line;
+ }
+
  .form-content {
+     margin-top: 50px;
+ }
+
+ .dropdown-content {
      margin-top: 50px;
  }
 
@@ -12,4 +24,5 @@
 
  .output-container {
      padding: 10px;
+     margin: auto;
  }

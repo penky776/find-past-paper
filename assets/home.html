@@ -16,18 +16,14 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
         crossorigin="anonymous"></script>
-    <style>
-        #output {
-            white-space: pre-line;
-        }
-    </style>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
     <link rel="stylesheet" href="css/home.css">
 </head>
 
 <body>
-    <div class="form-content d-flex justify-content-center px-3 py-2 text-bg-dark">
+    <!-- TODO -->
+    <div class="dropdown-content d-flex justify-content-center px-3 py-2 text-bg-dark">
         <div class="dropdown">
             <select class="dropdown-menu position-static d-grid gap-1 p-2 rounded-3 mx-0 shadow w-220px" name="subject"
                 id="subject">
@@ -43,12 +39,22 @@
                 Enter question:
                 <input type="text" id="user_input" name="user_input">
             </label>
-            <button onclick="submitForm()">Submit</button>
+            <button id="btn" class="btn btn-light" onclick="submitForm()">Ok</button>
         </div>
     </div>
-    <div class="output-container w3-container w3-grey col-md-6">
-        <p id="output"></p>
+    <div class="output-container col-md-6">
+        <p class="h-100 p-5 bg-light border rounded-3" id="output"></p>
     </div>
 </body>
+
+<script>
+    const input = document.getElementById("user_input");
+    input.addEventListener("keyup", function (event) {
+        if (event.key != "Enter")
+            return;
+        document.getElementById("btn").click();
+        event.preventDefault;
+    });
+</script>
 
 </html>
