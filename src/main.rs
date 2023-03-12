@@ -32,8 +32,9 @@ impl fmt::Display for Error {
 async fn main() -> Result<(), Error> {
     let app = Router::new()
         .route("/", get(root).post(match_input))
-        .nest_service("/js", ServeDir::new("assets/js"));
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+        .nest_service("/js", ServeDir::new("assets/js"))
+        .nest_service("/css", ServeDir::new("assets/css"));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
 
     match axum::Server::bind(&addr)
         .serve(app.into_make_service())

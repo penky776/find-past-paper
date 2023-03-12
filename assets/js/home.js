@@ -5,6 +5,7 @@ function submitForm() {
     xhr.open("POST", "http://localhost:3000/");
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.send(params);
+    document.getElementById('output').innerHTML = "loading...";
 
     xhr.onload = () => {
         if (xhr.readyState === xhr.DONE && xhr.status === 200) {
