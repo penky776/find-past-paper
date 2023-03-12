@@ -9,7 +9,15 @@ function submitForm() {
 
     xhr.onload = () => {
         if (xhr.readyState === xhr.DONE && xhr.status === 200) {
-            document.getElementById('output').innerHTML = xhr.response;
+            var response = xhr.response;
+            if (response === "") {
+                var response = "No matches found."
+            };
+            document.getElementById('output').innerHTML = makeBold(response, question);
         }
     };
+}
+
+function makeBold(input, wordToBold) {
+    return input.replace(new RegExp(wordToBold, "ig"), '<b>' + wordToBold + '</b>');
 }
