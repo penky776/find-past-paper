@@ -1,6 +1,7 @@
 function submitForm() {
+    const subject = document.getElementById("subject").value;
     const question = document.getElementById("user_input").value;
-    const params = "user_input=" + question;
+    const params = "user_input=" + question + "&subject=" + subject;
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "http://localhost:3000/");
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");

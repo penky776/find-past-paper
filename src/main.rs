@@ -53,6 +53,7 @@ async fn root() -> Html<&'static str> {
 #[allow(dead_code)]
 struct Input {
     user_input: String,
+    subject: String,
 }
 
 async fn match_input(Form(input): Form<Input>) -> impl IntoResponse {
@@ -67,9 +68,16 @@ async fn match_input(Form(input): Form<Input>) -> impl IntoResponse {
             .into_response()
             .map(boxed));
     };
-    let input = input.user_input;
+    let question = input.user_input;
+    let subject = input.subject;
     let text = Command::new("pdfgrep")
-        .args([&input, "past papers", "-n", "-r", "-H"])
+        .args([
+            &question,
+            &("past papers/".to_string().to_owned() + &subject),
+            "-n",
+            "-r",
+            "-H",
+        ])
         .output();
 
     match text {
