@@ -6,7 +6,7 @@ use axum::{
     Router,
 };
 use serde::Deserialize;
-use std::{fmt, net::SocketAddr, process::Command};
+use std::{fmt, net::SocketAddr, process::Command, process::Output};
 use tower_http::services::ServeDir;
 
 #[derive(Debug)]
@@ -77,12 +77,14 @@ async fn match_input(Form(input): Form<Input>) -> impl IntoResponse {
             "-n",
             "-r",
             "-H",
+            "--match-prefix-separator",
+            "|",
         ])
         .output();
 
     match text {
         Ok(t) => {
-            let result = String::from_utf8(t.stdout).unwrap();
+            let result = format_output_for_html_display(t);
             Ok(result.into_response().map(boxed))
         }
         Err(_) => Err(Error::CouldNotReadFile
@@ -90,4 +92,57 @@ async fn match_input(Form(input): Form<Input>) -> impl IntoResponse {
             .into_response()
             .map(boxed)),
     }
+}
+
+// ensure the output is displayed on the html page like: "[DIRECTORY] - page [PAGE NUMBER] - <i>[OUTPUT]</i>\n" per line
+fn format_output_for_html_display(output: Output) -> String {
+    let mut output_string = String::from_utf8(output.stdout).unwrap();
+
+    // let new_string = output_string.replace("\n", "...</i> \n");
+    let no_of_lines = output_string
+        .matches("\n")
+        .count()
+        .to_string()
+        .parse()
+        .unwrap();
+
+    let even_numbers = get_even(no_of_lines);
+    let mut even_prefix_sep_indices: Vec<usize> = Vec::new();
+
+    for i in even_numbers {
+        let even_prefix_sep_index = get_char_index_of_nth_separator(output_string.clone(), i);
+        even_prefix_sep_indices.push(even_prefix_sep_index);
+    }
+
+    // replace the nth instances (in which n is an even number) with "~"
+    for i in even_prefix_sep_indices {
+        output_string.replace_range(i..i + 1, "~")
+    }
+
+    let formatted_page_numbers = output_string.replace("~", " - page ");
+    let added_first_italics_tags = formatted_page_numbers.replace("|", " - <i>...");
+    let final_result = added_first_italics_tags.replace("\n", "...</i>\n");
+
+    return final_result;
+}
+
+fn get_char_index_of_nth_separator(output_string: String, n: u32) -> usize {
+    return output_string
+        .match_indices("|")
+        .nth(n.try_into().unwrap())
+        .map(|s| s.0)
+        .unwrap();
+}
+
+fn get_even(number: u32) -> Vec<u32> {
+    let mut even_numbers: Vec<u32> = Vec::new();
+    for i in 0..number * 2 {
+        if i % 2 == 0 {
+            even_numbers.push(i);
+        } else {
+            continue;
+        }
+    }
+
+    return even_numbers;
 }
