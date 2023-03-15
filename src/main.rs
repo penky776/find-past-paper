@@ -6,7 +6,13 @@ use axum::{
     Router,
 };
 use serde::Deserialize;
-use std::{fmt, net::SocketAddr, process::Command, process::Output};
+use std::{
+    fmt,
+    net::SocketAddr,
+    process::{Command, Output},
+    thread,
+};
+use tokio::sync::mpsc::{channel, Sender};
 use tower_http::services::ServeDir;
 
 #[derive(Debug)]
@@ -56,7 +62,28 @@ struct Input {
     subject: String,
 }
 
+fn scheduler(question: String, subject: String, tx: Sender<Output>) {
+    let reply = pdfgrep(question, subject);
+    tx.blocking_send(reply.unwrap()).unwrap();
+}
+
+fn pdfgrep(question: String, subject: String) -> Result<Output, std::io::Error> {
+    let text = Command::new("pdfgrep")
+        .args([
+            &question,
+            &("past-papers/".to_string().to_owned() + &subject),
+            "-n",
+            "-r",
+            "-H",
+            "--match-prefix-separator",
+            "|",
+        ])
+        .output();
+    return text;
+}
+
 async fn match_input(Form(input): Form<Input>) -> impl IntoResponse {
+    let (tx, mut rx) = channel(100);
     if input.user_input.is_empty() {
         return Err(Error::InputFieldIsEmpty
             .to_string()
@@ -70,24 +97,17 @@ async fn match_input(Form(input): Form<Input>) -> impl IntoResponse {
     };
     let question = input.user_input;
     let subject = input.subject;
-    let text = Command::new("pdfgrep")
-        .args([
-            &question,
-            &("past-papers/".to_string().to_owned() + &subject),
-            "-n",
-            "-r",
-            "-H",
-            "--match-prefix-separator",
-            "|",
-        ])
-        .output();
+
+    thread::spawn(move || scheduler(question, subject, tx));
+
+    let text = rx.recv().await;
 
     match text {
-        Ok(t) => {
+        Some(t) => {
             let result = format_output_for_html_display(t);
             Ok(result.into_response().map(boxed))
         }
-        Err(_) => Err(Error::CouldNotReadFile
+        _ => Err(Error::CouldNotReadFile
             .to_string()
             .into_response()
             .map(boxed)),
