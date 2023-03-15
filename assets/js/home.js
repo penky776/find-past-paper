@@ -14,11 +14,7 @@ function submitForm() {
             if (response === "") {
                 var response = "No matches found."
             };
-            document.getElementById('output').innerHTML = makeBold(response, question);
+            document.getElementById('output').innerHTML = response;
         }
     };
-}
-
-function makeBold(input, wordToBold) {
-    return input.replace(new RegExp(wordToBold, "ig"), '<b>' + wordToBold + '</b>');
 }

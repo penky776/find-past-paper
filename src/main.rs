@@ -28,7 +28,7 @@ impl fmt::Display for Error {
         match self {
             Error::ServerFailed => write!(f, "server failed to start"),
             Error::CouldNotReadFile => write!(f, "Could not read file"),
-            Error::InputFieldIsEmpty => write!(f, "Input field is not allowed to be empty"),
+            Error::InputFieldIsEmpty => write!(f, "Please enter a question in the input field"),
             Error::UnsuitableInputLength => write!(f, "Input must be over 3 characters"),
         }
     }
@@ -95,7 +95,7 @@ async fn match_input(Form(input): Form<Input>) -> impl IntoResponse {
             .into_response()
             .map(boxed));
     };
-    let question = input.user_input;
+    let question = input.user_input.clone();
     let subject = input.subject;
 
     thread::spawn(move || scheduler(question, subject, tx));
@@ -104,7 +104,7 @@ async fn match_input(Form(input): Form<Input>) -> impl IntoResponse {
 
     match text {
         Some(t) => {
-            let result = format_output_for_html_display(t);
+            let result = format_output_for_html_display(input.user_input, t);
             Ok(result.into_response().map(boxed))
         }
         _ => Err(Error::CouldNotReadFile
@@ -115,7 +115,7 @@ async fn match_input(Form(input): Form<Input>) -> impl IntoResponse {
 }
 
 // ensure the output is displayed on the html page like: "[DIRECTORY] - page [PAGE NUMBER] - <i>[OUTPUT]</i>\n" per line
-fn format_output_for_html_display(output: Output) -> String {
+fn format_output_for_html_display(question: String, output: Output) -> String {
     let mut output_string = String::from_utf8(output.stdout).unwrap();
 
     // let new_string = output_string.replace("\n", "...</i> \n");
@@ -141,7 +141,11 @@ fn format_output_for_html_display(output: Output) -> String {
 
     let formatted_page_numbers = output_string.replace("~", " - page ");
     let added_first_italics_tags = formatted_page_numbers.replace("|", " - <i>...");
-    let final_result = added_first_italics_tags.replace("\n", "...</i>\n");
+    let close_italics_tags = added_first_italics_tags.replace("\n", "...</i>\n");
+    let final_result = close_italics_tags.replace(
+        &question,
+        &("<b>".to_string().to_owned() + &question + &"</b>".to_string()),
+    );
 
     return final_result;
 }
