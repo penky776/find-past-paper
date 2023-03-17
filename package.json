@@ -1,0 +1,24 @@
+{
+  "name": "find-past-paper",
+  "version": "1.0.0",
+  "description": "made this so i can scrape directories for specific past paper questions. utilises <a href=\"https://pdfgrep.org/\">pdfgrep</a>.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/penky776/find-past-paper.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/penky776/find-past-paper/issues"
+  },
+  "homepage": "https://github.com/penky776/find-past-paper#readme",
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-react-app": "^3.1.2"
+  }
+}
