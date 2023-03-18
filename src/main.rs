@@ -101,7 +101,6 @@ async fn match_input(Form(input): Form<Input>) -> impl IntoResponse {
 fn format_output_for_html_display(subject: String, question: String, output: Output) -> String {
     let mut output_string = String::from_utf8(output.stdout).unwrap();
 
-    // let new_string = output_string.replace("\n", "...</i> \n");
     let no_of_lines = output_string
         .matches("\n")
         .count()
