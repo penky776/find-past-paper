@@ -1,3 +1,6 @@
+mod error;
+
+use crate::error::FindPastPaperError;
 use axum::{
     body::boxed,
     extract::Form,
@@ -7,7 +10,6 @@ use axum::{
 };
 use serde::Deserialize;
 use std::{
-    fmt,
     net::SocketAddr,
     process::{Command, Output},
     thread,
@@ -15,27 +17,8 @@ use std::{
 use tokio::sync::mpsc::{channel, Sender};
 use tower_http::services::ServeDir;
 
-#[derive(Debug)]
-enum Error {
-    ServerFailed,
-    CouldNotReadFile,
-    InputFieldIsEmpty,
-    UnsuitableInputLength,
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Error::ServerFailed => write!(f, "server failed to start"),
-            Error::CouldNotReadFile => write!(f, "Could not read file"),
-            Error::InputFieldIsEmpty => write!(f, "Please enter a question in the input field"),
-            Error::UnsuitableInputLength => write!(f, "Input must be over 3 characters"),
-        }
-    }
-}
-
 #[tokio::main]
-async fn main() -> Result<(), Error> {
+async fn main() -> Result<(), FindPastPaperError> {
     let app = Router::new()
         .route("/", get(root).post(match_input))
         .nest_service("/js", ServeDir::new("assets/js"))
@@ -47,7 +30,7 @@ async fn main() -> Result<(), Error> {
         .await
     {
         Ok(i) => Ok(i),
-        Err(_) => Err(Error::ServerFailed),
+        Err(_) => Err(FindPastPaperError::ServerFailed),
     }
 }
 
@@ -85,12 +68,12 @@ fn pdfgrep(question: String, subject: String) -> Result<Output, std::io::Error> 
 async fn match_input(Form(input): Form<Input>) -> impl IntoResponse {
     let (tx, mut rx) = channel(100);
     if input.user_input.is_empty() {
-        return Err(Error::InputFieldIsEmpty
+        return Err(FindPastPaperError::InputFieldIsEmpty
             .to_string()
             .into_response()
             .map(boxed));
     } else if input.user_input.len() < 3 {
-        return Err(Error::UnsuitableInputLength
+        return Err(FindPastPaperError::UnsuitableInputLength
             .to_string()
             .into_response()
             .map(boxed));
@@ -107,7 +90,7 @@ async fn match_input(Form(input): Form<Input>) -> impl IntoResponse {
             let result = format_output_for_html_display(input.subject, input.user_input, t);
             Ok(result.into_response().map(boxed))
         }
-        _ => Err(Error::CouldNotReadFile
+        _ => Err(FindPastPaperError::CouldNotReadFile
             .to_string()
             .into_response()
             .map(boxed)),
