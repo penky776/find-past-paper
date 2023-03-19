@@ -24,6 +24,8 @@
 
  .output-container {
      padding: 10px;
+     padding-right: 10%;
+     padding-left: 10%;
      margin: auto;
  }
 
