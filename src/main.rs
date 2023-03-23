@@ -1,6 +1,5 @@
 mod error;
 
-use crate::error::FindPastPaperError;
 use axum::{
     body::boxed,
     extract::Form,
@@ -8,6 +7,7 @@ use axum::{
     routing::get,
     Router,
 };
+use error::FindPastPaperError;
 use serde::Deserialize;
 use std::{
     net::SocketAddr,
